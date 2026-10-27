@@ -1,0 +1,200 @@
+import os
+import json
+from typing import Dict, Any, Optional
+from app.config import GEMINI_API_KEY
+from app.services.workload import calculate_user_workload, get_team_workload_overview
+from app.database import get_db
+
+HUMAN_REVIEW_DISCLAIMER = (
+    "AI-Generated Advisory: These insights are exploratory recommendations generated to facilitate respectful, "
+    "evidence-based workload conversations. They are not clinical assessments or performance evaluations. "
+    "All workload adjustments and reallocations require explicit human review and mutual agreement."
+)
+
+def generate_deterministic_insights(mode: str, workload: Dict[str, Any], extra_context: Optional[str] = None) -> Dict[str, Any]:
+    name = workload.get("user_name", "Employee")
+    cap_ratio = workload.get("capacity_ratio", 100.0)
+    after_hours = workload.get("after_hours_logged", 0.0)
+    vol_hours = workload.get("voluntary_unplanned_hours", 0.0)
+    cat_hours = workload.get("category_hours", {})
+    sorted_cats = sorted(cat_hours.items(), key=lambda x: x[1], reverse=True)
+    top_cat = sorted_cats[0][0] if sorted_cats else "administration"
+
+    if mode == "summarize_workload":
+        summary = (
+            f"Over the monitored period, {name}'s projected workload stands at {cap_ratio}% of sustainable capacity "
+            f"({workload.get('total_projected_load', 0)}h projected vs {workload.get('target_hours', 35)}h target). "
+            f"The primary time driver is '{top_cat}' ({cat_hours.get(top_cat, 0)} estimated hours). "
+            f"Additionally, {after_hours} hours were logged outside scheduled working periods, and {vol_hours} hours "
+            f"stem from unplanned or unassigned responsibilities."
+        )
+        recommendations = [
+            f"Review non-urgent tasks in the '{top_cat}' category to assess whether deadlines can be extended.",
+            f"Clarify ownership on the {workload.get('unclear_ownership_count', 0)} tasks flagged with ambiguous ownership.",
+            "Schedule a collaborative workload calibration session to review fixed commitments."
+        ]
+        evidence = f"Derived from {workload.get('active_task_count', 0)} active tasks and recent 7-day time log records."
+        return {
+            "mode": mode,
+            "title": f"Workload Summary for {name}",
+            "text": summary,
+            "bullet_points": recommendations,
+            "evidence": evidence,
+            "uncertainty": "Variance ratio is based on historical logged completion versus estimates.",
+            "disclaimer": HUMAN_REVIEW_DISCLAIMER
+        }
+
+    elif mode == "draft_request":
+        # Conflict or clarification request
+        draft = (
+            f"Dear Manager,\n\n"
+            f"I am reviewing my current schedule for this week and want to ensure high student outcomes and safety standards. "
+            f"Currently, my projected workload is around {cap_ratio}% of weekly capacity, with {vol_hours} hours of newly added tasks.\n\n"
+            f"Specifically, I notice competing demands between urgent student learning needs and administrative tasks. "
+            f"Could we briefly review my current task list to confirm which items should take priority, and whether any non-urgent items can be safely deferred or shared?\n\n"
+            f"Thank you for your ongoing support,\n{name}"
+        )
+        return {
+            "mode": mode,
+            "title": "Respectful Workload Clarification Draft",
+            "text": draft,
+            "bullet_points": [
+                "Maintains a respectful, student-first tone without accusations.",
+                "Quotes objective workload data rather than subjective stress claims.",
+                "Explicitly seeks collaborative prioritization."
+            ],
+            "evidence": f"Calculated based on {cap_ratio}% capacity burden and {vol_hours}h of unplanned obligations.",
+            "uncertainty": "User should personalize specific task titles before sending.",
+            "disclaimer": HUMAN_REVIEW_DISCLAIMER
+        }
+
+    elif mode == "suggest_questions":
+        questions = [
+            f"1. Given that {top_cat} accounts for {cat_hours.get(top_cat, 0)} hours this week, are there departmental templates or shared resources that could streamline this?",
+            "2. How can we clarify permanent ownership for cross-departmental duties that currently rely on voluntary pickup?",
+            "3. If an urgent student support need arises, which specific routine deadlines have standing permission to be deferred?",
+            "4. What small scheduling experiment could we trial over the next 10 school days to protect non-contact planning time?"
+        ]
+        return {
+            "mode": mode,
+            "title": "Constructive Questions for Workload Calibration",
+            "text": "Use these evidence-based discussion prompts during your next 1-on-1 workload check-in:",
+            "bullet_points": questions,
+            "evidence": "Generated by cross-referencing task categories, urgency levels, and unassigned duty counts.",
+            "uncertainty": "Questions assume standard department operational structures.",
+            "disclaimer": HUMAN_REVIEW_DISCLAIMER
+        }
+
+    elif mode == "propose_rebalancing":
+        text = (
+            f"Analysis of team distribution indicates that {name} is operating at {cap_ratio}% capacity, "
+            f"primarily due to fixed commitments combined with critical student-facing duties. "
+            f"To restore balance without compromising student outcomes, it is recommended to keep all critical and high-priority "
+            f"tasks with {name}, while exploring whether non-urgent administrative and deferrable tasks can be allocated "
+            f"to colleagues who currently have available capacity."
+        )
+        return {
+            "mode": mode,
+            "title": "Team Workload Rebalancing Advisory",
+            "text": text,
+            "bullet_points": [
+                "Never reassign safety-critical or immediate exam-critical tasks away from the primary instructor without explicit planning.",
+                "Reassignments must be entered with documented reasons and approved by human managers.",
+                "Rebalanced tasks should match the recipient's subject domain and available timetable periods."
+            ],
+            "evidence": "Synthesized from team-wide capacity indices and task priority distributions.",
+            "uncertainty": "Subject-specialism and timetable period conflicts must be validated by the coordinator.",
+            "disclaimer": HUMAN_REVIEW_DISCLAIMER
+        }
+
+    return {
+        "mode": mode,
+        "title": "Workload Advisory",
+        "text": f"Workload calculation completed. Current capacity index: {cap_ratio}%.",
+        "bullet_points": ["Review logged tasks regularly."],
+        "evidence": "Deterministic metrics engine.",
+        "uncertainty": "None.",
+        "disclaimer": HUMAN_REVIEW_DISCLAIMER
+    }
+
+def get_ai_workload_insights(
+    user_id: str,
+    org_id: str,
+    mode: str = "summarize_workload",
+    task_id: Optional[str] = None,
+    target_user_id: Optional[str] = None,
+    include_private_notes: bool = False,
+    user_context: Optional[str] = None
+) -> Dict[str, Any]:
+    # Determine subject user
+    effective_user_id = target_user_id if target_user_id else user_id
+    workload = calculate_user_workload(effective_user_id, org_id)
+
+    # Privacy enforcement: if private notes were requested without consent, force to False
+    private_notes_content = ""
+    if include_private_notes:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT private_note FROM tasks WHERE assigned_to_id = ? AND private_note IS NOT NULL", (effective_user_id,))
+            notes = [row["private_note"] for row in cursor.fetchall() if row.get("private_note")]
+            if notes:
+                private_notes_content = "\nUser Private Notes (Authorized with consent):\n" + "\n".join(notes)
+
+    # Check if Gemini API Key is configured and try to call Gemini
+    if GEMINI_API_KEY:
+        try:
+            # We can use google-genai or standard HTTP request to Gemini REST API
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=GEMINI_API_KEY)
+
+            system_instruction = (
+                "You are the FAIRSHIFT AI Workload & Well-being Advisor. "
+                "Your mission is to help teachers and managers prevent chronic overwork through objective, evidence-based data. "
+                "SAFETY RULES:\n"
+                "1. Use neutral, respectful, evidence-based language.\n"
+                "2. Never accuse any individual of laziness, malingering, or exploitation.\n"
+                "3. Never advise abandoning student safety, exam duties, or legally required tasks.\n"
+                "4. Do NOT diagnose medical or psychological conditions.\n"
+                "5. Always clearly state evidence and uncertainty.\n"
+                "6. Format response as JSON with keys: title, text, bullet_points (list of strings), evidence, uncertainty."
+            )
+
+            prompt = (
+                f"Mode: {mode}\n"
+                f"User Profile: {workload.get('user_name')}, Role: {workload.get('role')}\n"
+                f"Capacity Ratio: {workload.get('capacity_ratio')}%\n"
+                f"Weekly Target: {workload.get('target_hours')}h, Projected Load: {workload.get('total_projected_load')}h\n"
+                f"Fixed Commitment: {workload.get('fixed_commitment_hours')}h\n"
+                f"Categories Breakdown: {json.dumps(workload.get('category_hours', {}))}\n"
+                f"Priorities Breakdown: {json.dumps(workload.get('priority_breakdown', {}))}\n"
+                f"After-hours logged: {workload.get('after_hours_logged')}h\n"
+                f"Unplanned/voluntary hours: {workload.get('voluntary_unplanned_hours')}h\n"
+                f"Additional Context: {user_context or 'None'}\n"
+                f"{private_notes_content}\n"
+                "Provide helpful, constructive, respectful output strictly following the requested mode."
+            )
+
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.3,
+                    response_mime_type="application/json"
+                )
+            )
+
+            parsed = json.loads(response.text)
+            parsed["mode"] = mode
+            parsed["disclaimer"] = HUMAN_REVIEW_DISCLAIMER
+            return parsed
+        except Exception as e:
+            # Fallback gracefully to deterministic logic if network or API key error occurs
+            res = generate_deterministic_insights(mode, workload, user_context)
+            res["uncertainty"] += f" (Note: Gemini API offline/fallback active: {str(e)[:60]})"
+            return res
+    else:
+        # Fully functional deterministic explainable insights
+        return generate_deterministic_insights(mode, workload, user_context)

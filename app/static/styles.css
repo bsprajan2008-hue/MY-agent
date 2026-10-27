@@ -1,0 +1,78 @@
+/* FAIRSHIFT Enterprise Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-tamil: 'Noto Sans Tamil', 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[lang="ta"] body {
+  font-family: var(--font-tamil);
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --tw-border-opacity: 1 !important;
+  filter: contrast(115%);
+}
+
+.high-contrast button {
+  border-width: 2px !important;
+}
+
+/* Printable PDF View Styling */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print, aside, nav, button, .modal-backdrop, #demo-bar {
+    display: none !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+/* Badge animations & glass effect */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+}
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+}
+
+/* Interactive Canvas Chart Glow */
+canvas {
+  display: block;
+  max-width: 100%;
+}
