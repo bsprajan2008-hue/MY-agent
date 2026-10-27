@@ -133,12 +133,13 @@ class FairshiftApp {
       if (res.ok) {
         this.currentUser = await res.json();
       } else {
-        // Auto-login as default Priya Sharma (Overloaded teacher) for demo convenience
         await this.quickSwitchUser("user-priya-sharma");
         return;
       }
     } catch (e) {
-      console.error("Auth check failed:", e);
+      console.log("Static hosting detected (e.g. GitHub Pages). Initializing client storage demo mode.");
+      this.initStaticMode("user-priya-sharma");
+      return;
     }
 
     this.updateUserUI();
@@ -347,7 +348,6 @@ class FairshiftApp {
         this.closeModal("modal-demo-switcher");
         this.updateUserUI();
 
-        // If manager, default to manager dashboard, else teacher dashboard
         if (this.currentUser.role === "manager" || this.currentUser.role === "coordinator") {
           this.currentView = "dashboard-manager";
         } else {
@@ -356,10 +356,143 @@ class FairshiftApp {
 
         await this.fetchInitialData();
         this.render();
+        return;
       }
     } catch (e) {
-      console.error("Failed to switch demo user:", e);
+      // Fall through to client-side static mode
     }
+    this.initStaticMode(userId);
+  }
+
+  initStaticMode(userId) {
+    this.demoUsers = [
+      { id: "user-priya-sharma", name: "Priya Sharma", email: "priya.sharma@oakridge.edu", role: "teacher", org_name: "Oakridge High School", org_industry: "school", department_name: "English & Humanities", avatar_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150", weekly_target_hours: 35.0, contracted_teaching_periods: 22 },
+      { id: "user-marcus-chen", name: "Marcus Chen", email: "marcus.chen@oakridge.edu", role: "teacher", org_name: "Oakridge High School", org_industry: "school", department_name: "Mathematics & Computing", avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", weekly_target_hours: 35.0, contracted_teaching_periods: 18 },
+      { id: "user-aisha-rahman", name: "Aisha Rahman", email: "aisha.rahman@oakridge.edu", role: "teacher", org_name: "Oakridge High School", org_industry: "school", department_name: "Sciences", avatar_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150", weekly_target_hours: 35.0, contracted_teaching_periods: 20 },
+      { id: "user-sarah-jenkins", name: "Sarah Jenkins", email: "sarah.jenkins@oakridge.edu", role: "manager", org_name: "Oakridge High School", org_industry: "school", department_name: "Administration & Student Care", avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150", weekly_target_hours: 40.0, contracted_teaching_periods: 4 },
+      { id: "user-david-miller", name: "David Miller", email: "david.miller@oakridge.edu", role: "coordinator", org_name: "Oakridge High School", org_industry: "school", department_name: "Administration & Student Care", avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", weekly_target_hours: 37.5, contracted_teaching_periods: 8 },
+      { id: "user-elena-rostova", name: "Elena Rostova, RN", email: "elena.rostova@stjudehealth.org", role: "teacher", org_name: "St. Jude Community Health Clinic", org_industry: "healthcare", department_name: "Inpatient & Urgent Nursing", avatar_url: "https://images.unsplash.com/photo-1594824813637-293623f99d63?w=150", weekly_target_hours: 37.5, contracted_teaching_periods: 12 },
+      { id: "user-maria-patel", name: "Maria Patel", email: "maria.patel@stjudehealth.org", role: "manager", org_name: "St. Jude Community Health Clinic", org_industry: "healthcare", department_name: "Clinical Operations & Compliance", avatar_url: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=150", weekly_target_hours: 40.0, contracted_teaching_periods: 0 }
+    ];
+
+    this.currentUser = this.demoUsers.find(u => u.id === userId) || this.demoUsers[0];
+
+    // Seed Priya's tasks & logs
+    this.tasks = [
+      { id: "task-priya-1", title: "Grade Year 11 Diagnostic Mock Essays", description: "Grading 64 comprehensive practice essays with personalized line-by-line developmental feedback before state exams.", category: "assessment", estimated_duration_hours: 8.0, actual_duration_hours: 9.5, due_date: "Tomorrow", priority: "critical", status: "in_progress", assignment_type: "voluntarily_taken", extra_work_reason: "student_needs", private_note: "I worry students will fail Section B unless each essay has detailed notes." },
+      { id: "task-priya-2", title: "Year 9 Differentiated Lesson Material Prep", description: "Creating tiered reading comprehension worksheets for mixed-ability learners.", category: "lesson preparation", estimated_duration_hours: 6.0, actual_duration_hours: 4.0, due_date: "In 3 Days", priority: "high", status: "in_progress", assignment_type: "voluntarily_taken", extra_work_reason: "student_needs", private_note: "Standard textbook leaves struggling readers behind without scaffolded slides." },
+      { id: "task-priya-3", title: "Literacy Remediation Catch-up Clinic", description: "Voluntary after-school reading intervention for 12 struggling readers.", category: "student support", estimated_duration_hours: 4.0, actual_duration_hours: 3.5, due_date: "Next Week", priority: "high", status: "in_progress", assignment_type: "voluntarily_taken", extra_work_reason: "student_needs", private_note: "Essential for students who missed foundational literacy periods." },
+      { id: "task-priya-4", title: "Department Textbook Inventory & Condition Audit", description: "Count and log physical textbook barcodes across classrooms 301-306.", category: "administration", estimated_duration_hours: 4.5, actual_duration_hours: 0.0, due_date: "In 2 Weeks", priority: "deferrable", status: "pending", assignment_type: "formally_assigned", extra_work_reason: "none", private_note: "Non-urgent admin task that could easily wait until term break." },
+      { id: "task-priya-5", title: "Staff Wellbeing & Pastoral Care Meeting", description: "Weekly pastoral coordination meeting for designated form tutors.", category: "meetings", estimated_duration_hours: 2.0, actual_duration_hours: 2.0, due_date: "In 3 Days", priority: "normal", status: "in_progress", assignment_type: "formally_assigned", extra_work_reason: "none", private_note: null },
+      { id: "task-priya-6", title: "English Drama Club Rehearsal Coordination", description: "Facilitating after-school stage rehearsals without a designated co-advisor.", category: "extracurricular", estimated_duration_hours: 3.5, actual_duration_hours: 3.5, due_date: "Next Week", priority: "normal", status: "in_progress", assignment_type: "unclear_owner", extra_work_reason: "unclear_ownership", private_note: "Nobody else stepped forward to supervise the club so I felt compelled." }
+    ];
+
+    this.timeLogs = [
+      { id: "log-1", log_date: "Yesterday", duration_hours: 3.5, is_after_hours: 1, task_title: "Grade Year 11 Diagnostic Mock Essays", notes: "Grading essay drafts at home until 9:30 PM" },
+      { id: "log-2", log_date: "2 Days Ago", duration_hours: 3.0, is_after_hours: 1, task_title: "Grade Year 11 Diagnostic Mock Essays", notes: "Annotating grammar rubrics over weekend" },
+      { id: "log-3", log_date: "3 Days Ago", duration_hours: 2.0, is_after_hours: 0, task_title: "Year 9 Differentiated Lesson Material Prep", notes: "During scheduled planning block" },
+      { id: "log-4", log_date: "4 Days Ago", duration_hours: 2.5, is_after_hours: 1, task_title: "Literacy Remediation Catch-up Clinic", notes: "Staying late with ESL students" },
+      { id: "log-5", log_date: "5 Days Ago", duration_hours: 2.0, is_after_hours: 0, task_title: "Staff Wellbeing & Pastoral Care Meeting", notes: "Pastoral team session" }
+    ];
+
+    this.personalWorkload = {
+      user_id: this.currentUser.id,
+      user_name: this.currentUser.name,
+      user_email: this.currentUser.email,
+      role: this.currentUser.role,
+      department_name: this.currentUser.department_name,
+      target_hours: 35.0,
+      fixed_commitment_hours: 18.7,
+      contracted_teaching_periods: 22,
+      active_task_count: 6,
+      total_assigned_estimated: 28.0,
+      weighted_task_burden: 33.2,
+      total_projected_load: 47.4,
+      capacity_ratio: 135.4,
+      capacity_status: "severe_overload",
+      status_label: "Severe Overload Risk",
+      color: "rose",
+      actual_logged_hours_this_week: 13.0,
+      after_hours_logged: 9.0,
+      personal_time_lost_hours: 9.0,
+      voluntary_unplanned_hours: 21.5,
+      unclear_ownership_count: 1,
+      variance_ratio: 1.15,
+      priority_breakdown: {
+        critical_hours: 8.0, high_hours: 10.0, normal_hours: 5.5, deferrable_hours: 4.5,
+        counts: { critical: 1, high: 2, normal: 2, deferrable: 1 }
+      },
+      category_hours: { "assessment": 8.0, "lesson preparation": 6.0, "student support": 4.0, "administration": 4.5, "meetings": 2.0, "extracurricular": 3.5 },
+      explanation_factors: [
+        { factor: "Fixed Commitments", hours: 18.7, description: "22 contracted teaching periods (~0.85h each)" },
+        { factor: "Direct Assigned Tasks", hours: 28.0, description: "6 active tasks in current queue" },
+        { factor: "Urgency Multiplier", hours: 5.2, description: "Weight additions for critical and high priority duties" },
+        { factor: "Unplanned & Voluntary Work", hours: 21.5, description: "Voluntary assessment and unowned duties" }
+      ],
+      missing_data_notes: []
+    };
+
+    this.teamWorkload = {
+      total_teachers: 3,
+      overloaded_count: 1,
+      balanced_count: 1,
+      available_count: 1,
+      members: [
+        { ...this.personalWorkload },
+        { user_id: "user-aisha-rahman", user_name: "Aisha Rahman", capacity_ratio: 88.5, capacity_status: "balanced", status_label: "Balanced & Sustainable", total_projected_load: 31.0, target_hours: 35.0, after_hours_logged: 0.0, voluntary_unplanned_hours: 0.0, active_task_count: 2, variance_ratio: 1.0, contracted_teaching_periods: 20, department_name: "Sciences", priority_breakdown: { counts: { critical: 1, normal: 1 } } },
+        { user_id: "user-marcus-chen", user_name: "Marcus Chen", capacity_ratio: 70.2, capacity_status: "available", status_label: "Available Capacity", total_projected_load: 24.5, target_hours: 35.0, after_hours_logged: 0.0, voluntary_unplanned_hours: 2.0, active_task_count: 3, variance_ratio: 0.95, contracted_teaching_periods: 18, department_name: "Mathematics & Computing", priority_breakdown: { counts: { normal: 2, deferrable: 1 } } }
+      ],
+      rebalancing_suggestions: [
+        { task_id: "task-priya-4", task_title: "Department Textbook Inventory & Condition Audit", category: "administration", priority: "deferrable", estimated_hours: 4.5, from_user_id: "user-priya-sharma", from_user_name: "Priya Sharma", to_user_id: "user-marcus-chen", to_user_name: "Marcus Chen", reason: "Reduces Priya's 135% load by 4.5h while keeping Marcus within healthy capacity (83%). Requires manager approval." }
+      ]
+    };
+
+    this.requests = [
+      {
+        id: "req-1",
+        author_name: "Priya Sharma",
+        request_type: "clarification",
+        message: "I have Grade Year 11 Diagnostic Mock Essays and Department Textbook Inventory competing for 4 hours of available planning time this week. Which should I prioritise, and can either task be safely reassigned or rescheduled?",
+        status: "resolved",
+        manager_response: "Priya, excellent call. Please prioritize the Year 11 Diagnostic Essays without question. I have deferred the textbook inventory until next month, and Marcus Chen will assist. Thank you for flagging this proactively.",
+        resolved_at: "Yesterday"
+      }
+    ];
+
+    this.experiment = {
+      experiment: { id: "exp-priya-oct", status: "completed", start_date: "2026-10-22", end_date: "2026-10-27" },
+      entries: [
+        { day_number: 1, hours_spent: 2.5, task_title: "Personalized handwriting commentary on 32 practice quizzes", category: "assessment", extra_work_cause: "student_needs", perceived_consequence: "Worry students won't improve without line-by-line notes", actual_outcome: "Students glanced at score; verbal rubric would have worked equally well", candidate_action: "streamline" },
+        { day_number: 2, hours_spent: 1.5, task_title: "Reorganizing shared reading cupboard", category: "administration", extra_work_cause: "unclear_ownership", perceived_consequence: "Worry books will go missing", actual_outcome: "No classes needed the cupboard; task could have waited", candidate_action: "delegate" },
+        { day_number: 3, hours_spent: 2.0, task_title: "Hand-making differentiated graphic organizers", category: "lesson preparation", extra_work_cause: "quality_concern", perceived_consequence: "Fear standard worksheets are insufficient", actual_outcome: "Visual diagrams very helpful, but a reusable digital template would save 1.5h next time", candidate_action: "streamline" },
+        { day_number: 4, hours_spent: 2.0, task_title: "Drafting individual parent catch-up emails", category: "student support", extra_work_cause: "student_needs", perceived_consequence: "Worry parents feel disconnected", actual_outcome: "Parents appreciated it, but an aggregated bi-weekly newsletter bullet would convey the same key points", candidate_action: "reschedule" },
+        { day_number: 5, hours_spent: 1.5, task_title: "Staying behind to pack up stage props after drama club", category: "extracurricular", extra_work_cause: "unclear_ownership", perceived_consequence: "Nobody else was in the auditorium to lock up", actual_outcome: "Student council leaders could have been entrusted with checklist sign-off", candidate_action: "delegate" }
+      ],
+      summary: {
+        total_days_logged: 5,
+        total_entries: 5,
+        total_extra_hours_recorded: 9.5,
+        most_common_causes: [{ cause: "student_needs", count: 2 }, { cause: "unclear_ownership", count: 2 }, { cause: "quality_concern", count: 1 }],
+        reflections: [
+          { task: "Personalized handwriting commentary on 32 practice quizzes", feared_consequence: "Worry students won't improve without line-by-line notes", observed_outcome: "Students glanced at score; verbal rubric would have worked equally well" },
+          { task: "Reorganizing shared reading cupboard", feared_consequence: "Worry books will go missing", observed_outcome: "No classes needed the cupboard; task could have waited" }
+        ],
+        safe_next_experiment: "Safe Mini-Experiment: Next week, for one non-exam assessment, test providing structured verbal feedback or a rubric checklist instead of exhaustive handwritten notes, saving an estimated 2-3 hours while testing if student understanding remains equivalent.",
+        tentative_pattern_disclaimer: "These findings are observational reflection patterns based on your 5-day logs, not clinical or formal performance diagnoses. Safety-critical and legally required duties must always be maintained."
+      }
+    };
+
+    this.closeModal("modal-demo-switcher");
+    this.updateUserUI();
+    this.populateTaskDropdowns();
+    this.populateDemoUsersModal();
+
+    if (this.currentUser.role === "manager" || this.currentUser.role === "coordinator") {
+      this.currentView = "dashboard-manager";
+    } else {
+      this.currentView = "dashboard-teacher";
+    }
+    this.render();
   }
 
   navigate(viewName) {

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAIRSHIFT — Fair Workload and Well-being Platform</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="h-full bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+
+  <!-- DEMO RUNTIME TOP BANNER -->
+  <div id="demo-bar" class="bg-indigo-600 text-white px-4 py-2 text-xs md:text-sm font-medium flex items-center justify-between shadow-sm z-50">
+    <div class="flex items-center space-x-2">
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-indigo-800 text-indigo-100">DEMO ENVIRONMENT</span>
+      <span id="demo-org-label" class="hidden sm:inline">Oakridge High School (Education Domain)</span>
+    </div>
+    <div class="flex items-center space-x-3">
+      <span class="text-indigo-200 hidden md:inline">Switch Persona:</span>
+      <button onclick="app.quickSwitchUser('user-priya-sharma')" class="px-2 py-1 bg-indigo-700 hover:bg-indigo-800 rounded font-semibold text-xs transition">👩‍🏫 Priya (Overloaded Teacher)</button>
+      <button onclick="app.quickSwitchUser('user-marcus-chen')" class="px-2 py-1 bg-indigo-700 hover:bg-indigo-800 rounded font-semibold text-xs transition hidden sm:inline">👨‍🏫 Marcus (Available)</button>
+      <button onclick="app.quickSwitchUser('user-sarah-jenkins')" class="px-2 py-1 bg-indigo-700 hover:bg-indigo-800 rounded font-semibold text-xs transition">👩‍💼 Sarah (Principal / Manager)</button>
+      <button onclick="app.openModal('modal-demo-switcher')" class="px-2 py-1 bg-white text-indigo-700 hover:bg-indigo-50 rounded font-bold text-xs transition">More...</button>
+    </div>
+  </div>
+
+  <!-- APPLICATION SHELL -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all duration-300 z-40 hidden md:flex">
+      <div>
+        <!-- Logo & Brand Header -->
+        <div class="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-700/60 justify-between">
+          <div class="flex items-center space-x-3 cursor-pointer" onclick="app.navigate('landing')">
+            <div class="w-9 h-9 rounded-xl bg-teal-600 text-white flex items-center justify-center font-extrabold text-lg shadow-sm">FS</div>
+            <div>
+              <div class="font-bold tracking-tight text-slate-900 dark:text-white leading-none">FAIRSHIFT</div>
+              <div class="text-[10px] text-teal-600 dark:text-teal-400 font-medium tracking-wider uppercase mt-1">Workload & Well-being</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current User Brief Card -->
+        <div class="p-4 mx-3 my-3 bg-slate-50 dark:bg-slate-700/40 rounded-xl border border-slate-200/60 dark:border-slate-700 flex items-center space-x-3">
+          <img id="user-avatar" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-slate-300">
+          <div class="flex-1 min-w-0">
+            <div id="user-name" class="font-semibold text-sm truncate text-slate-800 dark:text-slate-100">Priya Sharma</div>
+            <div id="user-role-badge" class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200">Teacher</div>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="px-3 space-y-1 text-sm font-medium overflow-y-auto max-h-[calc(100vh-270px)]">
+          <div class="px-3 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider" data-i18n="nav_personal">My Space</div>
+          
+          <button onclick="app.navigate('dashboard-teacher')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="dashboard-teacher">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span data-i18n="nav_my_dashboard">My Dashboard</span>
+          </button>
+
+          <button onclick="app.navigate('my-tasks')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="my-tasks">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <span data-i18n="nav_my_tasks">My Tasks & Duties</span>
+          </button>
+
+          <button onclick="app.navigate('time-tracker')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="time-tracker">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span data-i18n="nav_time_logs">Time & Extra-Hours</span>
+          </button>
+
+          <button onclick="app.navigate('experiment')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="experiment">
+            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+            <span data-i18n="nav_experiment">5-Day Experiment</span>
+          </button>
+
+          <button onclick="app.navigate('requests')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="requests">
+            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span data-i18n="nav_requests">Requests & Concerns</span>
+          </button>
+
+          <!-- Leadership & Manager Section -->
+          <div class="pt-4 px-3 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider" data-i18n="nav_management">Leadership & Team</div>
+
+          <button onclick="app.navigate('dashboard-manager')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="dashboard-manager">
+            <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span data-i18n="nav_team_workload">Team Capacity & Fairness</span>
+          </button>
+
+          <button onclick="app.navigate('rebalancing')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="rebalancing">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            <span data-i18n="nav_rebalance">Task Rebalancing</span>
+          </button>
+
+          <!-- Insights & Platform -->
+          <div class="pt-4 px-3 py-1.5 text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider" data-i18n="nav_platform">Insights & Platform</div>
+
+          <button onclick="app.navigate('ai-insights')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="ai-insights">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span data-i18n="nav_ai_advisor">AI Workload Advisor</span>
+          </button>
+
+          <button onclick="app.navigate('settings')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="settings">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span data-i18n="nav_settings">Settings & Privacy</span>
+          </button>
+
+          <button onclick="app.navigate('walkthrough')" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" data-view="walkthrough">
+            <svg class="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span data-i18n="nav_walkthrough">Demo Walkthrough</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Quick Export & Safety Disclaimer Footer -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-700 text-xs">
+        <div class="bg-teal-50 dark:bg-teal-950/40 p-2.5 rounded-lg border border-teal-200/60 dark:border-teal-800 mb-2">
+          <div class="font-bold text-teal-900 dark:text-teal-200 flex items-center space-x-1">
+            <span>🛡️ Non-Surveillance Rule</span>
+          </div>
+          <div class="text-[11px] text-teal-800 dark:text-teal-300 mt-1">
+            No keystroke tracking or public ranks. Workload data is for collaborative calibration.
+          </div>
+        </div>
+        <button onclick="window.print()" class="w-full py-1.5 px-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded text-slate-700 dark:text-slate-200 font-medium text-xs flex items-center justify-center space-x-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          <span data-i18n="btn_print_pdf">Print / Export Summary</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT VIEW CONTAINER -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      
+      <!-- TOP NAVIGATION BAR -->
+      <header class="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
+        <div class="flex items-center space-x-3">
+          <!-- Mobile Menu Toggle Button -->
+          <button onclick="app.toggleMobileSidebar()" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <h1 id="page-title" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">Teacher Dashboard</h1>
+        </div>
+
+        <!-- Controls: Language, High Contrast, Dark Mode, Quick Actions -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          
+          <!-- Language Selector -->
+          <select id="lang-select" onchange="app.setLanguage(this.value)" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 focus:outline-none">
+            <option value="en">English (US)</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+          </select>
+
+          <!-- Theme Toggle -->
+          <button onclick="app.toggleTheme()" title="Toggle Dark/Light Mode" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">
+            <svg id="theme-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          </button>
+
+          <!-- High Contrast Mode Toggle -->
+          <button onclick="app.toggleHighContrast()" title="Toggle High Contrast Mode" class="hidden sm:inline-flex px-2 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
+            A11y
+          </button>
+
+          <!-- Quick Action: Log Time -->
+          <button onclick="app.openModal('modal-timelog')" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-1.5 shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span class="hidden sm:inline" data-i18n="btn_log_time">Log Time</span>
+            <span class="sm:hidden">Log</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- DYNAMIC VIEW RENDER CONTAINER -->
+      <div id="view-container" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <!-- Rendered by app.js based on activeTab -->
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: ADD / EDIT TASK -->
+  <div id="modal-task" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+        <h3 class="font-bold text-lg text-slate-900 dark:text-white" data-i18n="modal_task_title">Record Task / Duty</h3>
+        <button onclick="app.closeModal('modal-task')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">✕</button>
+      </div>
+      <form id="form-task" onsubmit="app.handleTaskSubmit(event)" class="space-y-4 mt-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_title">Task Title *</label>
+          <input type="text" id="task-input-title" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-teal-500" placeholder="e.g. Year 11 Exam Diagnostic Grading">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_category">Category *</label>
+            <select id="task-input-category" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+              <option value="teaching">Teaching</option>
+              <option value="lesson preparation">Lesson Preparation</option>
+              <option value="assessment">Assessment & Grading</option>
+              <option value="student support">Student Support</option>
+              <option value="administration">Administration</option>
+              <option value="meetings">Meetings</option>
+              <option value="extracurricular">Extracurricular</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_priority">Priority Level *</label>
+            <select id="task-input-priority" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold">
+              <option value="critical" class="text-rose-600">Critical (Student Safety / Imminent Exam)</option>
+              <option value="high" class="text-amber-600">High (Key Teaching & Learning)</option>
+              <option value="normal" selected class="text-blue-600">Normal (Routine Duties)</option>
+              <option value="deferrable" class="text-slate-500">Deferrable (Can wait if overloaded)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_est_hours">Est. Hours *</label>
+            <input type="number" step="0.5" min="0.5" max="100" id="task-input-est-hours" required value="2.0" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_due_date">Due Date *</label>
+            <input type="date" id="task-input-due-date" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_assignment_type">Duty Origin</label>
+            <select id="task-input-assignment-type" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+              <option value="formally_assigned">Formally Assigned</option>
+              <option value="voluntarily_taken">Voluntarily Taken On</option>
+              <option value="unclear_owner">Unclear Ownership</option>
+              <option value="emergency_work">Emergency Coverage</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_reason_extra">Reason for Extra Work (If voluntary or unplanned)</label>
+          <select id="task-input-extra-reason" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+            <option value="none">N/A - Standard Scheduled Task</option>
+            <option value="student_needs">Concern for Student Learning / Well-being</option>
+            <option value="urgent_request">Urgent External / Parent Request</option>
+            <option value="unclear_ownership">Unclear Responsibility / Gap</option>
+            <option value="quality_concern">Standard Materials Need Differentiating</option>
+            <option value="insufficient_staffing">Insufficient Staffing / Coverage</option>
+            <option value="colleague_support">Supporting an Overworked Colleague</option>
+            <option value="personal_choice">Personal Professional Choice</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_private_note">Private Note (Strictly visible only to you!)</label>
+          <textarea id="task-input-private-note" rows="2" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm" placeholder="Your private reflection space. Never visible to managers unless explicitly shared."></textarea>
+        </div>
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" onclick="app.closeModal('modal-task')" class="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold bg-teal-600 hover:bg-teal-700 text-white" data-i18n="btn_save_task">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TIME LOGGING -->
+  <div id="modal-timelog" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+        <h3 class="font-bold text-lg text-slate-900 dark:text-white" data-i18n="modal_timelog_title">Log Actual Time Spent</h3>
+        <button onclick="app.closeModal('modal-timelog')" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <form id="form-timelog" onsubmit="app.handleTimeLogSubmit(event)" class="space-y-4 mt-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_select_task">Associated Task (Optional)</label>
+          <select id="log-input-task" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+            <option value="">-- General Unlisted Activity --</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_hours">Hours Spent *</label>
+            <input type="number" step="0.25" min="0.25" max="24" id="log-input-hours" required value="1.5" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_date">Date *</label>
+            <input type="date" id="log-input-date" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+          </div>
+        </div>
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200/60 dark:border-amber-800">
+          <label class="flex items-center space-x-2.5 cursor-pointer">
+            <input type="checkbox" id="log-input-after-hours" class="w-4 h-4 text-amber-600 rounded">
+            <span class="text-xs font-bold text-amber-900 dark:text-amber-200" data-i18n="field_after_hours">Completed outside scheduled working hours (After-hours / Weekend)</span>
+          </label>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_notes">Brief Reflection / Notes</label>
+          <input type="text" id="log-input-notes" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm" placeholder="e.g. Worked at home grading diagnostic tests">
+        </div>
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" onclick="app.closeModal('modal-timelog')" class="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold bg-teal-600 hover:bg-teal-700 text-white" data-i18n="btn_save_log">Record Log</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFLICT PRIORITISATION & RESPECTFUL REQUEST (MVP FEATURE 3 & 5) -->
+  <div id="modal-request" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+        <div>
+          <h3 class="font-bold text-lg text-slate-900 dark:text-white" data-i18n="modal_request_title">Prioritisation & Support Request</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Evidence-based, respectful channel for workload boundaries.</p>
+        </div>
+        <button onclick="app.closeModal('modal-request')" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <form id="form-request" onsubmit="app.handleRequestSubmit(event)" class="space-y-4 mt-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_request_type">Request Type *</label>
+          <select id="req-input-type" onchange="app.handleRequestTypeChange(this.value)" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold">
+            <option value="clarification">Prioritisation Clarification (Task A vs Task B competing for time)</option>
+            <option value="assistance">Request Operational Assistance / Co-teacher</option>
+            <option value="reassignment">Request Non-Urgent Task Reassignment</option>
+            <option value="recurring_imbalance">Report Recurring Workload Imbalance</option>
+            <option value="confidential_concern">Confidential Concern (Authorised Handler only)</option>
+          </select>
+        </div>
+
+        <!-- Competing Tasks Prioritisation Helper (MVP 3) -->
+        <div id="req-competing-tasks-block" class="p-4 bg-teal-50 dark:bg-teal-950/40 rounded-xl border border-teal-200/60 dark:border-teal-800 space-y-3">
+          <div class="text-xs font-bold text-teal-900 dark:text-teal-200">Student-First Conflict Resolution Template</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300 mb-1">Task A (Urgent / Student-facing)</label>
+              <select id="req-input-task-a" onchange="app.updateConflictMessageDraft()" class="w-full px-2.5 py-1.5 rounded-lg border border-teal-300 dark:border-teal-700 bg-white dark:bg-slate-800 text-xs"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300 mb-1">Task B (Routine / Deferrable)</label>
+              <select id="req-input-task-b" onchange="app.updateConflictMessageDraft()" class="w-full px-2.5 py-1.5 rounded-lg border border-teal-300 dark:border-teal-700 bg-white dark:bg-slate-800 text-xs"></select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300 mb-1">Available Planning / Work Hours</label>
+            <input type="number" step="0.5" id="req-input-available-hours" value="4.0" onchange="app.updateConflictMessageDraft()" class="w-28 px-2 py-1 rounded border border-teal-300 dark:border-teal-700 bg-white dark:bg-slate-800 text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1" data-i18n="field_message">Respectful Message *</label>
+          <textarea id="req-input-message" rows="4" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-sans" placeholder="State your message clearly and respectfully using objective workload facts."></textarea>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-700">
+          <div>Audited and visible only to designated manager/handler.</div>
+          <div class="flex space-x-2">
+            <button type="button" onclick="app.closeModal('modal-request')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100" data-i18n="btn_cancel">Cancel</button>
+            <button type="submit" class="px-4 py-2 rounded-lg font-semibold bg-teal-600 hover:bg-teal-700 text-white" data-i18n="btn_send_request">Send Request</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: MANAGER RESPONSE -->
+  <div id="modal-respond-request" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+        <h3 class="font-bold text-lg text-slate-900 dark:text-white">Respond to Workload Request</h3>
+        <button onclick="app.closeModal('modal-respond-request')" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <form id="form-respond-request" onsubmit="app.handleResponseSubmit(event)" class="space-y-4 mt-4">
+        <input type="hidden" id="resp-input-request-id">
+        <div id="resp-request-details" class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl text-xs space-y-1"></div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Action Status *</label>
+          <select id="resp-input-status" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold">
+            <option value="resolved">Resolved (Approved Deferral / Clarified Priority)</option>
+            <option value="under_review">Under Review / Scheduling Calibration</option>
+            <option value="reassigned">Task Reassigned to Colleague</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Manager Response & Decision *</label>
+          <textarea id="resp-input-message" rows="3" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm" placeholder="Provide clear, supportive resolution. e.g. Priority confirmed for Year 11 exams; textbook audit deferred to break."></textarea>
+        </div>
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" onclick="app.closeModal('modal-respond-request')" class="px-4 py-2 rounded-lg text-sm text-slate-600" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold bg-teal-600 hover:bg-teal-700 text-white">Record Response</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: HUMAN-APPROVED TASK REASSIGNMENT -->
+  <div id="modal-reassign" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+        <div>
+          <h3 class="font-bold text-lg text-slate-900 dark:text-white">Human Approval: Reassign Task</h3>
+          <p class="text-xs text-slate-500">Requires explicit recorded business justification.</p>
+        </div>
+        <button onclick="app.closeModal('modal-reassign')" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <form id="form-reassign" onsubmit="app.handleReassignmentSubmit(event)" class="space-y-4 mt-4">
+        <input type="hidden" id="reassign-task-id">
+        <div id="reassign-task-summary" class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl text-xs"></div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Assign To *</label>
+          <select id="reassign-to-user-id" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Recorded Reason for Task Reassignment *</label>
+          <textarea id="reassign-reason" rows="3" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm" placeholder="e.g. Rebalancing non-urgent admin task from Priya to Marcus to protect exam grading capacity."></textarea>
+        </div>
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" onclick="app.closeModal('modal-reassign')" class="px-4 py-2 rounded-lg text-sm text-slate-600" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white">Approve & Execute Reassignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: 5-DAY EXPERIMENT DAILY ENTRY -->
+  <div id="modal-experiment-entry" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+        <div>
+          <h3 class="font-bold text-lg text-slate-900 dark:text-white">Record Extra Work Reflection</h3>
+          <p class="text-xs text-slate-500">Day 1 to 5 guided workload observation</p>
+        </div>
+        <button onclick="app.closeModal('modal-experiment-entry')" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <form id="form-experiment-entry" onsubmit="app.handleExperimentEntrySubmit(event)" class="space-y-4 mt-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Experiment Day *</label>
+            <select id="ee-day-number" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-bold">
+              <option value="1">Day 1</option>
+              <option value="2">Day 2</option>
+              <option value="3">Day 3</option>
+              <option value="4">Day 4</option>
+              <option value="5">Day 5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Hours Spent *</label>
+            <input type="number" step="0.25" min="0.25" max="12" id="ee-hours" required value="1.5" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Task / Activity Description *</label>
+          <input type="text" id="ee-task-title" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm" placeholder="e.g. Handwritten comments on 32 practice quizzes">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Category *</label>
+            <select id="ee-category" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+              <option value="assessment">Assessment</option>
+              <option value="lesson preparation">Lesson Preparation</option>
+              <option value="student support">Student Support</option>
+              <option value="administration">Administration</option>
+              <option value="extracurricular">Extracurricular</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Why taken on? *</label>
+            <select id="ee-cause" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm">
+              <option value="student_needs">Concern students will suffer</option>
+              <option value="quality_concern">Standard resources felt insufficient</option>
+              <option value="unclear_ownership">Unclear who owns task</option>
+              <option value="insufficient_staffing">Staff shortage</option>
+              <option value="urgent_request">Urgent request</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">What did you fear would happen if it waited or was shared?</label>
+          <input type="text" id="ee-perceived-consequence" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm" placeholder="e.g. Worried students would lose momentum before exam.">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">What actually happened in hindsight?</label>
+          <input type="text" id="ee-actual-outcome" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm" placeholder="e.g. Students glanced at grade; verbal rubric would have worked equally well.">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Candidate action for next term?</label>
+          <select id="ee-candidate-action" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold">
+            <option value="streamline">Streamline (Use checklist / rubric / template)</option>
+            <option value="delegate">Delegate / Share with Department</option>
+            <option value="reschedule">Reschedule (Move to planning period)</option>
+            <option value="keep">Keep (Essential high-impact core work)</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+          <button type="button" onclick="app.closeModal('modal-experiment-entry')" class="px-4 py-2 rounded-lg text-sm text-slate-600" data-i18n="btn_cancel">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg text-sm font-semibold bg-teal-600 hover:bg-teal-700 text-white">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SWITCH DEMO USER -->
+  <div id="modal-demo-switcher" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+        <div>
+          <h3 class="font-bold text-lg text-slate-900 dark:text-white">Switch Demo User & Organization</h3>
+          <p class="text-xs text-slate-500">Explore Teacher, Manager, Coordinator & Multi-Industry modes</p>
+        </div>
+        <button onclick="app.closeModal('modal-demo-switcher')" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <div id="demo-users-list" class="space-y-2 mt-4 max-h-[60vh] overflow-y-auto">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT BUNDLE -->
+  <script src="./app.js"></script>
+</body>
+</html>
